@@ -40,7 +40,7 @@ func main() {
 
 	// Configuration CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8081"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -57,16 +57,25 @@ func main() {
 	// Configuration du dossier des templates
 	r.LoadHTMLGlob("templates/*")
 
+	// Routes des pages
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Sarouels & Mocassins",
+		})
+	})
+
+	r.GET("/game", gameHandler.RenderGamePage)
+
 	// Routes de l'API
 	api := r.Group("/api")
 	{
 		// Routes du jeu (pas d'authentification requise)
 		game := api.Group("/game")
 		{
-			game.GET("/statement/random", gameHandler.GetRandomStatement)
+			game.GET("/next-question", gameHandler.RenderNextQuestion)
 			game.POST("/vote", gameHandler.SubmitVote)
+			game.GET("/vote-results", gameHandler.RenderVoteResults)
 			game.GET("/stats", gameHandler.GetStats)
-			game.GET("/results", gameHandler.GetResults)
 		}
 
 		// Routes admin (avec authentification)
@@ -80,16 +89,9 @@ func main() {
 		}
 	}
 
-	// Route par défaut pour servir l'application frontend
-	r.NoRoute(func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Sarouels & Mocassins",
-		})
-	})
-
 	// Démarrage du serveur
-	log.Println("Serveur démarré sur http://localhost:8080")
-	if err := r.Run(":8080"); err != nil {
+	log.Println("Serveur démarré sur http://localhost:8081")
+	if err := r.Run(":8081"); err != nil {
 		log.Fatal("Erreur lors du démarrage du serveur:", err)
 	}
 }

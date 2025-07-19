@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-gray-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jouer - Sarouels & Mocassins</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full text-white">
+    <div class="min-h-full flex flex-col py-12 sm:px-6 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-2xl">
+            <!-- Header avec compteur -->
+            <div class="flex justify-between items-center mb-8 px-4 sm:px-0">
+                <button
+                    hx-get="/"
+                    hx-target="body"
+                    hx-swap="outerHTML"
+                    hx-push-url="true"
+                    class="text-gray-400 hover:text-white transition-colors">
+                    ← Retour
+                </button>
+                <div class="text-gray-400">
+                    Question <span id="questionCounter">{{ .questionCount }}</span>
+                </div>
+            </div>
+
+            <!-- Zone de jeu dynamique -->
+            <div id="gameZone" class="bg-gray-800 shadow-xl rounded-lg overflow-hidden">
+                <div class="p-8 text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+                    <p class="mt-4 text-gray-400">Chargement de la question...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Charger la première question après le chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                htmx.ajax('GET', '/api/game/next-question', {target: '#gameZone', swap: 'innerHTML'});
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+
+{{ define "question" }}
+<div class="p-8">
+    {{ if .empty }}
+        <div class="text-center">
+            <div class="text-2xl font-bold mb-4">{{ .message }}</div>
+            <button
+                hx-get="/"
+                hx-target="body"
+                hx-swap="outerHTML"
+                hx-push-url="true"
+                class="py-3 px-6 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transform hover:scale-105 transition-all">
+                Retour à l'accueil
+            </button>
+        </div>
+    {{ else }}
+        <h2 class="text-2xl font-bold text-center mb-8">
+            {{ .statement.Text }}
+        </h2>
+
+        <div class="grid grid-cols-2 gap-4">
+            <button
+                hx-post="/api/game/vote"
+                hx-vals='{"statement_id": {{ .statement.ID }}, "choice": "left"}'
+                hx-target="#gameZone"
+                class="flex-1 py-6 px-4 text-xl font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
+                GAUCHE
+            </button>
+            <button
+                hx-post="/api/game/vote"
+                hx-vals='{"statement_id": {{ .statement.ID }}, "choice": "right"}'
+                hx-target="#gameZone"
+                class="flex-1 py-6 px-4 text-xl font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:ring-offset-gray-800">
+                DROITE
+            </button>
+        </div>
+    {{ end }}
+</div>
+{{ end }}
+
+{{ define "results" }}
+<div class="p-8">
+    <h3 class="text-xl font-semibold mb-6">{{ .statement.Text }}</h3>
+
+    <!-- Réponse de l'IA -->
+    <div class="bg-gray-700 rounded-lg p-6 mb-8">
+        <div class="flex items-center mb-4">
+            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
+                🤖
+            </div>
+            <h4 class="text-lg font-medium">Réponse de l'IA</h4>
+        </div>
+        <div class="ml-11">
+            <p class="text-gray-300 mb-2">
+                Cette action est plutôt de <span class="font-bold {{ if eq .statement.AIChoice "left" }}text-blue-400{{ else }}text-red-400{{ end }}">
+                    {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
+                </span>
+            </p>
+            <p class="text-gray-300">{{ .statement.AIExplanation }}</p>
+        </div>
+    </div>
+
+    <!-- Statistiques des votes -->
+    <div class="space-y-4">
+        <h4 class="text-lg font-medium mb-4">Votes des joueurs</h4>
+
+        <!-- Barre de progression GAUCHE -->
+        <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+                <span>GAUCHE</span>
+                <span>{{ printf "%.1f" .stats.LeftPercent }}%</span>
+            </div>
+            <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-600 transition-all duration-1000" style="width: {{ .stats.LeftPercent }}%"></div>
+            </div>
+            <div class="text-sm text-gray-400">{{ .stats.LeftVotes }} votes</div>
+        </div>
+
+        <!-- Barre de progression DROITE -->
+        <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+                <span>DROITE</span>
+                <span>{{ printf "%.1f" .stats.RightPercent }}%</span>
+            </div>
+            <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-red-600 transition-all duration-1000" style="width: {{ .stats.RightPercent }}%"></div>
+            </div>
+            <div class="text-sm text-gray-400">{{ .stats.RightVotes }} votes</div>
+        </div>
+    </div>
+
+    <!-- Bouton suivant -->
+    <div class="mt-8">
+        <button
+            hx-get="/api/game/next-question"
+            hx-target="#gameZone"
+            class="w-full py-4 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-800">
+            Question suivante →
+        </button>
+    </div>
+</div>
+{{ end }}
+
+{{ define "error" }}
+<div class="p-8 text-center">
+    <div class="text-red-400 mb-4">{{ .error }}</div>
+    <button
+        hx-get="/api/game/next-question"
+        hx-target="#gameZone"
+        class="py-2 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg">
+        Réessayer
+    </button>
+</div>
+{{ end }}

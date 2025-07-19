@@ -1,11 +1,71 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full bg-gray-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .title }}</title>
+    <title>Sarouels & Mocassins</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
+<body class="h-full text-white">
+    <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-md">
+            <h1 class="text-center text-4xl font-extrabold bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text mb-2">
+                Sarouels & Mocassins
+            </h1>
+            <h2 class="text-center text-xl text-gray-300 mb-8">
+                Le jeu qui teste votre sens de la gauche et de la droite
+            </h2>
+        </div>
 
+        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+            <div class="bg-gray-800 py-8 px-4 shadow-xl rounded-lg sm:px-10">
+                <div class="space-y-6">
+                    <div class="text-gray-300 space-y-4">
+                        <p class="text-lg font-medium text-center mb-6">
+                            Comment jouer ?
+                        </p>
+                        <div class="space-y-3">
+                            <p class="flex items-center">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white mr-3">1</span>
+                                On vous présente une situation ou une action
+                            </p>
+                            <p class="flex items-center">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white mr-3">2</span>
+                                Vous devez décider si c'est plutôt de gauche ou de droite
+                            </p>
+                            <p class="flex items-center">
+                                <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white mr-3">3</span>
+                                Découvrez ce que l'IA en pense et comparez avec les autres joueurs
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <button
+                            hx-get="/game"
+                            hx-target="body"
+                            hx-swap="outerHTML"
+                            hx-push-url="true"
+                            class="w-full flex justify-center py-4 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-800 transform hover:scale-105 transition-all">
+                            Commencer à jouer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
