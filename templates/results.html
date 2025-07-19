@@ -1,0 +1,60 @@
+<div class="p-8">
+    <h3 class="text-xl font-semibold mb-6">{{ .statement.Text }}</h3>
+
+    <!-- Réponse de l'IA -->
+    <div class="bg-gray-700 rounded-lg p-6 mb-8">
+        <div class="flex items-center mb-4">
+            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
+                🤖
+            </div>
+            <h4 class="text-lg font-medium">Réponse de l'IA</h4>
+        </div>
+        <div class="ml-11">
+            <p class="text-gray-300 mb-2">
+                Cette action est plutôt de <span class="font-bold {{ if eq .statement.AIChoice "left" }}text-blue-400{{ else }}text-red-400{{ end }}">
+                    {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
+                </span>
+            </p>
+            <p class="text-gray-300">{{ .statement.AIExplanation }}</p>
+        </div>
+    </div>
+
+    <!-- Statistiques des votes -->
+    <div class="space-y-4">
+        <h4 class="text-lg font-medium mb-4">Votes des joueurs</h4>
+
+        <!-- Barre de progression GAUCHE -->
+        <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+                <span>GAUCHE</span>
+                <span>{{ printf "%.1f" .stats.LeftPercent }}%</span>
+            </div>
+            <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-600 transition-all duration-1000" style="width: {{ .stats.LeftPercent }}%"></div>
+            </div>
+            <div class="text-sm text-gray-400">{{ .stats.LeftVotes }} votes</div>
+        </div>
+
+        <!-- Barre de progression DROITE -->
+        <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+                <span>DROITE</span>
+                <span>{{ printf "%.1f" .stats.RightPercent }}%</span>
+            </div>
+            <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-red-600 transition-all duration-1000" style="width: {{ .stats.RightPercent }}%"></div>
+            </div>
+            <div class="text-sm text-gray-400">{{ .stats.RightVotes }} votes</div>
+        </div>
+    </div>
+
+    <!-- Bouton suivant -->
+    <div class="mt-8">
+        <button
+            hx-get="/api/game/next-question"
+            hx-target="#gameZone"
+            class="w-full py-4 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-800">
+            Question suivante →
+        </button>
+    </div>
+</div>

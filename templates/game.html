@@ -38,7 +38,11 @@
             </div>
 
             <!-- Zone de jeu dynamique -->
-            <div id="gameZone" class="bg-gray-800 shadow-xl rounded-lg overflow-hidden">
+            <div id="gameZone"
+                 class="bg-gray-800 shadow-xl rounded-lg overflow-hidden"
+                 hx-get="/api/game/next-question"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
                 <div class="p-8 text-center">
                     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
                     <p class="mt-4 text-gray-400">Chargement de la question...</p>
@@ -48,11 +52,17 @@
     </div>
 
     <script>
-        // Charger la première question après le chargement de la page
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                htmx.ajax('GET', '/api/game/next-question', {target: '#gameZone', swap: 'innerHTML'});
-            }, 500);
+        // Debug HTMX events
+        document.addEventListener('htmx:beforeRequest', function(e) {
+            console.log('HTMX Request starting:', e.detail);
+        });
+
+        document.addEventListener('htmx:afterRequest', function(e) {
+            console.log('HTMX Request completed:', e.detail);
+        });
+
+        document.addEventListener('htmx:responseError', function(e) {
+            console.log('HTMX Error:', e.detail);
         });
     </script>
 </body>

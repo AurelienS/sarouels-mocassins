@@ -90,8 +90,8 @@ func main() {
 	}
 
 	// Démarrage du serveur
-	log.Println("Serveur démarré sur http://localhost:8081")
-	if err := r.Run(":8081"); err != nil {
+	log.Println("Serveur démarré sur http://localhost:8080")
+	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Erreur lors du démarrage du serveur:", err)
 	}
 }

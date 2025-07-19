@@ -42,7 +42,7 @@ func (h *GameHandler) RenderNextQuestion(c *gin.Context) {
 		if result.Error == gorm.ErrRecordNotFound {
 			log.Println("Aucune question trouvée")
 			c.HTML(http.StatusOK, "question.html", gin.H{
-				"empty": true,
+				"empty":   true,
 				"message": "Aucune question disponible pour le moment !",
 			})
 			return
@@ -56,8 +56,9 @@ func (h *GameHandler) RenderNextQuestion(c *gin.Context) {
 
 	h.questionCount++
 	log.Printf("Question chargée: %+v", statement)
+
 	c.HTML(http.StatusOK, "question.html", gin.H{
-		"statement": statement,
+		"statement":     statement,
 		"questionCount": h.questionCount,
 	})
 }
