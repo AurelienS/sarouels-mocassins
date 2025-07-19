@@ -22,7 +22,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	// Configuration de la base de données
-	db, err := gorm.Open(sqlite.Open("database/app.db"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("db/app.db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
