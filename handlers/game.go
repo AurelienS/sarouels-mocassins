@@ -285,41 +285,88 @@ func (h *GameHandler) validateVoteInput(input map[string]interface{}) (uint, str
 
 // RenderGamePage affiche la page de jeu
 func (h *GameHandler) RenderGamePage(c *gin.Context) {
-	log.Println("RenderGamePage appelé")
-	c.Header("Content-Type", "text/html")
-	c.HTML(http.StatusOK, "game.html", gin.H{
-		"title": "Jouer - Sarouels & Mocassins",
-		"questionCount": 1,
-	})
+    log.Println("RenderGamePage appelé")
+
+    // Si pas d'ID dans l'URL, sélectionner une nouvelle question
+    if questionID := c.Param("id"); questionID == "" {
+        statement, err := h.selectIntelligentStatement()
+        if err != nil {
+            log.Printf("Erreur lors de la sélection de phrase: %v", err)
+            c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+                "error": "Erreur lors du chargement de la question",
+            })
+            return
+        }
+        // Au lieu de rediriger, on affiche directement la question
+        c.HTML(http.StatusOK, "game.html", gin.H{
+            "title": "Jouer - Sarouels & Mocassins",
+            "statement": statement,
+        })
+        return
+    }
+
+    // Si on a un ID, chercher la question correspondante
+    id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+    if err != nil {
+        log.Printf("ID de question invalide: %v", err)
+        c.HTML(http.StatusBadRequest, "error.html", gin.H{
+            "error": "ID de question invalide",
+        })
+        return
+    }
+
+    // Chercher la question dans la base de données
+    var statement models.Statement
+    if err := h.db.First(&statement, uint(id)).Error; err != nil {
+        log.Printf("Question non trouvée: %v", err)
+        c.HTML(http.StatusNotFound, "error.html", gin.H{
+            "error": "Question non trouvée",
+        })
+        return
+    }
+
+    // Afficher la question
+    c.HTML(http.StatusOK, "game.html", gin.H{
+        "title": "Jouer - Sarouels & Mocassins",
+        "statement": &statement,
+    })
 }
 
 // RenderNextQuestion affiche la prochaine question avec sélection intelligente
 func (h *GameHandler) RenderNextQuestion(c *gin.Context) {
-	log.Println("RenderNextQuestion appelé")
+    log.Println("RenderNextQuestion appelé")
 
-	// Sélection intelligente de la prochaine phrase
-	statement, err := h.selectIntelligentStatement()
-	if err != nil {
-		log.Printf("Erreur lors de la sélection de phrase: %v", err)
-		if err.Error() == "aucune phrase disponible" {
-			c.HTML(http.StatusOK, "question.html", gin.H{
-				"empty":   true,
-				"message": "Aucune question disponible pour le moment !",
-			})
-			return
-		}
-		c.HTML(http.StatusOK, "error.html", gin.H{
-			"error": "Erreur lors du chargement de la question",
-		})
-		return
-	}
+    // Sélection intelligente de la prochaine phrase
+    statement, err := h.selectIntelligentStatement()
+    if err != nil {
+        log.Printf("Erreur lors de la sélection de phrase: %v", err)
+        if err.Error() == "aucune phrase disponible" {
+            c.HTML(http.StatusOK, "question.html", gin.H{
+                "empty":   true,
+                "message": "Aucune question disponible pour le moment !",
+            })
+            return
+        }
+        c.HTML(http.StatusOK, "error.html", gin.H{
+            "error": "Erreur lors du chargement de la question",
+        })
+        return
+    }
 
-	log.Printf("Question sélectionnée intelligemment: ID=%d, Text=%s, AIChoice=%s",
-		statement.ID, statement.Text, statement.AIChoice)
+    log.Printf("Question sélectionnée intelligemment: ID=%d, Text=%s, AIChoice=%s",
+        statement.ID, statement.Text, statement.AIChoice)
 
-	c.HTML(http.StatusOK, "question.html", gin.H{
-		"statement": statement,
-	})
+    // Si la requête vient de HTMX, retourner la redirection
+    if c.GetHeader("HX-Request") == "true" {
+        c.Header("HX-Redirect", fmt.Sprintf("/game/%d", statement.ID))
+        c.Status(http.StatusOK)
+        return
+    }
+
+    // Sinon, retourner le HTML de la question
+    c.HTML(http.StatusOK, "question.html", gin.H{
+        "statement": statement,
+    })
 }
 
 // SubmitVote enregistre un vote et affiche les résultats enrichis

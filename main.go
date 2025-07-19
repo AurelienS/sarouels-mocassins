@@ -69,6 +69,7 @@ func main() {
 	})
 
 	r.GET("/game", gameHandler.RenderGamePage)
+	r.GET("/game/:id", gameHandler.RenderGamePage) // Nouvelle route pour les questions spécifiques
 
 	// Routes de l'API
 	api := r.Group("/api")
