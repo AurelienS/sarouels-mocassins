@@ -14,20 +14,22 @@
 <div class="p-8">
     <h2 class="text-2xl font-bold text-center mb-8">{{ .statement.Text }}</h2>
     <div class="grid grid-cols-2 gap-4">
-        <button
-            hx-post="/api/game/vote"
-            hx-vals='{"statement_id": {{ .statement.ID }}, "choice": "left"}'
-            hx-target="#gameZone"
-            class="flex-1 py-6 px-4 text-xl font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
-            GAUCHE
-        </button>
-        <button
-            hx-post="/api/game/vote"
-            hx-vals='{"statement_id": {{ .statement.ID }}, "choice": "right"}'
-            hx-target="#gameZone"
-            class="flex-1 py-6 px-4 text-xl font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:ring-offset-gray-800">
-            DROITE
-        </button>
+        <form hx-post="/api/game/vote" hx-target="#gameZone" hx-swap="outerHTML">
+            <input type="hidden" name="statement_id" value="{{ .statement.ID }}">
+            <input type="hidden" name="choice" value="left">
+            <button type="submit"
+                class="w-full py-6 px-4 text-xl font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
+                GAUCHE
+            </button>
+        </form>
+        <form hx-post="/api/game/vote" hx-target="#gameZone" hx-swap="outerHTML">
+            <input type="hidden" name="statement_id" value="{{ .statement.ID }}">
+            <input type="hidden" name="choice" value="right">
+            <button type="submit"
+                class="w-full py-6 px-4 text-xl font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:ring-offset-gray-800">
+                DROITE
+            </button>
+        </form>
     </div>
 </div>
 {{ end }}

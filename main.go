@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -17,6 +18,9 @@ import (
 )
 
 func main() {
+	// Initialisation du générateur de nombres aléatoires
+	rand.Seed(time.Now().UnixNano())
+
 	// Configuration de la base de données
 	db, err := gorm.Open(sqlite.Open("database/app.db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
