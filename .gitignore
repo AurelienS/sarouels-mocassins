@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+test-build
 
 # Test binary, built with `go test -c`
 *.test
@@ -21,6 +22,12 @@ go.work
 *.db
 *.sqlite
 *.sqlite3
+db/app.db
+
+# Environment files
+.env
+.env.*
+*.env
 
 # IDE specific files
 .idea/
@@ -31,3 +38,11 @@ go.work
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
