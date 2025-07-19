@@ -1,156 +1,229 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
+	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
+	"sarouels-mocassins/config"
 	"sarouels-mocassins/models"
 )
 
-type AdminHandler struct {
-	db *gorm.DB
+var (
+	adminMutex sync.RWMutex
+	db         *gorm.DB
+)
+
+// SetDB initialise la connexion à la base de données
+func SetDB(database *gorm.DB) {
+	db = database
 }
 
-func NewAdminHandler(db *gorm.DB) *AdminHandler {
-	return &AdminHandler{db: db}
-}
-
-// GetAllStatements liste toutes les phrases
-func (h *AdminHandler) GetAllStatements(c *gin.Context) {
+// Fonctions de base de données
+func GetAllStatements() ([]models.Statement, error) {
 	var statements []models.Statement
-	if err := h.db.Find(&statements).Error; err != nil {
-		log.Printf("Erreur lors de la récupération des phrases: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la récupération des phrases"})
-		return
-	}
-
-	c.JSON(http.StatusOK, statements)
+	result := db.Find(&statements)
+	return statements, result.Error
 }
 
-// AddStatement ajoute une nouvelle phrase
-func (h *AdminHandler) AddStatement(c *gin.Context) {
+func GetStatement(id int) (*models.Statement, error) {
 	var statement models.Statement
-	if err := c.ShouldBindJSON(&statement); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides"})
-		return
+	result := db.First(&statement, id)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-
-	// Validation des champs obligatoires
-	if statement.Text == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Le texte de la phrase est requis"})
-		return
-	}
-
-	if statement.AIChoice != "left" && statement.AIChoice != "right" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "La réponse de l'IA doit être 'left' ou 'right'"})
-		return
-	}
-
-	if statement.AIExplanation == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "L'explication de l'IA est requise"})
-		return
-	}
-
-	if err := h.db.Create(&statement).Error; err != nil {
-		log.Printf("Erreur lors de la création de la phrase: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la création de la phrase"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, statement)
+	return &statement, nil
 }
 
-// UpdateStatement modifie une phrase existante
-func (h *AdminHandler) UpdateStatement(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID manquant"})
-		return
-	}
+func CreateStatement(statement *models.Statement) error {
+	return db.Create(statement).Error
+}
 
-	var statement models.Statement
-	if err := h.db.First(&statement, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Phrase non trouvée"})
+func UpdateStatement(statement *models.Statement) error {
+	return db.Save(statement).Error
+}
+
+func DeleteStatement(id int) error {
+	return db.Delete(&models.Statement{}, id).Error
+}
+
+// Middleware d'authentification
+func AdminAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Vérifier d'abord le cookie
+		_, err := c.Cookie("admin_auth")
+		if err == nil {
+			c.Next()
 			return
 		}
-		log.Printf("Erreur lors de la récupération de la phrase: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur serveur"})
+
+		// Si pas de cookie, vérifier le header
+		password := c.GetHeader("X-Admin-Password")
+		if password == config.AdminPassword {
+			c.Next()
+			return
+		}
+
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	}
+}
+
+// Affichage de la page d'administration
+func AdminPageHandler(c *gin.Context) {
+	// Vérification du cookie d'authentification
+	_, err := c.Cookie("admin_auth")
+	if err != nil {
+		c.HTML(http.StatusOK, "admin_login.html", nil)
 		return
 	}
 
-	var updateData models.Statement
-	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides"})
+	statements, err := GetAllStatements()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": err.Error()})
 		return
 	}
 
-	// Validation des champs obligatoires
-	if updateData.Text == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Le texte de la phrase est requis"})
+	c.HTML(http.StatusOK, "admin.html", gin.H{
+		"Statements":    statements,
+		"AdminPassword": config.AdminPassword,
+	})
+}
+
+// Login administrateur
+func AdminLoginHandler(c *gin.Context) {
+	password := c.PostForm("password")
+	if password != config.AdminPassword {
+		c.HTML(http.StatusUnauthorized, "admin_login.html", gin.H{
+			"error": "Mot de passe incorrect",
+		})
 		return
 	}
 
-	if updateData.AIChoice != "left" && updateData.AIChoice != "right" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "La réponse de l'IA doit être 'left' ou 'right'"})
+	c.SetCookie("admin_auth", "true", 3600, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/admin")
+}
+
+// Logout administrateur
+func AdminLogoutHandler(c *gin.Context) {
+	c.SetCookie("admin_auth", "", -1, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/admin")
+}
+
+// Création d'un statement
+func CreateStatementHandler(c *gin.Context) {
+	statement := models.Statement{
+		Text:          c.PostForm("text"),
+		AIChoice:      c.PostForm("ai_choice"),
+		AIExplanation: c.PostForm("ai_explanation"),
+	}
+
+	err := CreateStatement(&statement)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if updateData.AIExplanation == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "L'explication de l'IA est requise"})
+	c.Redirect(http.StatusFound, "/admin")
+}
+
+// Récupération d'un statement
+func GetStatementHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
 		return
 	}
 
-	// Mise à jour des champs
-	statement.Text = updateData.Text
-	statement.AIChoice = updateData.AIChoice
-	statement.AIExplanation = updateData.AIExplanation
-
-	if err := h.db.Save(&statement).Error; err != nil {
-		log.Printf("Erreur lors de la mise à jour de la phrase: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la mise à jour"})
+	statement, err := GetStatement(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Statement non trouvé"})
 		return
 	}
 
 	c.JSON(http.StatusOK, statement)
 }
 
-// DeleteStatement supprime une phrase
-func (h *AdminHandler) DeleteStatement(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID manquant"})
+// Mise à jour d'un statement
+func UpdateStatementHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
 		return
 	}
 
-	// Vérifier si la phrase existe
-	var statement models.Statement
-	if err := h.db.First(&statement, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Phrase non trouvée"})
-			return
-		}
-		log.Printf("Erreur lors de la récupération de la phrase: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur serveur"})
+	var updateData struct {
+		Text          string `json:"text"`
+		AIChoice      string `json:"ai_choice"`
+		AIExplanation string `json:"ai_explanation"`
+	}
+
+	if err := c.BindJSON(&updateData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Supprimer les votes associés
-	if err := h.db.Where("statement_id = ?", id).Delete(&models.Vote{}).Error; err != nil {
-		log.Printf("Erreur lors de la suppression des votes: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression des votes"})
+	statement, err := GetStatement(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Statement non trouvé"})
 		return
 	}
 
-	// Supprimer la phrase
-	if err := h.db.Delete(&statement).Error; err != nil {
-		log.Printf("Erreur lors de la suppression de la phrase: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression"})
+	statement.Text = updateData.Text
+	statement.AIChoice = updateData.AIChoice
+	statement.AIExplanation = updateData.AIExplanation
+
+	err = UpdateStatement(statement)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Phrase supprimée avec succès"})
+	c.JSON(http.StatusOK, statement)
+}
+
+// Suppression d'un statement
+func DeleteStatementHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
+
+	err = DeleteStatement(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Statement supprimé"})
+}
+
+// Réinitialisation des votes
+func ResetVotesHandler(c *gin.Context) {
+	adminMutex.Lock()
+	defer adminMutex.Unlock()
+
+	// Supprimer tous les votes
+	if err := db.Delete(&models.Vote{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Votes réinitialisés"})
+}
+
+// Export des données en JSON
+func ExportDataHandler(c *gin.Context) {
+	statements, err := GetAllStatements()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename=statements.json")
+	c.Header("Content-Type", "application/json")
+	c.JSON(http.StatusOK, statements)
 }

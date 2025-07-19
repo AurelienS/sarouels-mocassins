@@ -12,12 +12,15 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	"sarouels-mocassins/config"
 	"sarouels-mocassins/handlers"
-	"sarouels-mocassins/middleware"
 	"sarouels-mocassins/models"
 )
 
 func main() {
+	// Initialisation de la configuration
+	config.Init()
+
 	// Initialisation du générateur de nombres aléatoires
 	rand.Seed(time.Now().UnixNano())
 
@@ -37,7 +40,7 @@ func main() {
 
 	// Initialisation des handlers
 	gameHandler := handlers.NewGameHandler(db)
-	adminHandler := handlers.NewAdminHandler(db)
+	handlers.SetDB(db) // Initialisation de la connexion pour le handler admin
 
 	// Configuration du routeur Gin
 	r := gin.Default()
@@ -82,15 +85,32 @@ func main() {
 			game.GET("/vote-results", gameHandler.RenderVoteResults)
 			game.GET("/stats", gameHandler.GetStats)
 		}
+	}
 
-		// Routes admin (avec authentification)
-		admin := api.Group("/admin")
-		admin.Use(middleware.AdminAuth())
+	// Routes d'administration
+	admin := r.Group("/admin")
+	{
+		// Routes publiques
+		admin.GET("/", handlers.AdminPageHandler)
+		admin.GET("/login", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "admin_login.html", nil)
+		})
+		admin.POST("/login", handlers.AdminLoginHandler)
+		admin.GET("/logout", handlers.AdminLogoutHandler)
+
+		// Routes protégées
+		protected := admin.Group("")
+		protected.Use(handlers.AdminAuthMiddleware())
 		{
-			admin.GET("/statements", adminHandler.GetAllStatements)
-			admin.POST("/statements", adminHandler.AddStatement)
-			admin.PUT("/statements/:id", adminHandler.UpdateStatement)
-			admin.DELETE("/statements/:id", adminHandler.DeleteStatement)
+			// CRUD Statements
+			protected.POST("/statements", handlers.CreateStatementHandler)
+			protected.GET("/statements/:id", handlers.GetStatementHandler)
+			protected.PUT("/statements/:id", handlers.UpdateStatementHandler)
+			protected.DELETE("/statements/:id", handlers.DeleteStatementHandler)
+
+			// Autres fonctionnalités
+			protected.POST("/reset-votes", handlers.ResetVotesHandler)
+			protected.GET("/export", handlers.ExportDataHandler)
 		}
 	}
 
