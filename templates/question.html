@@ -1,18 +1,21 @@
 {{ if .empty }}
-<div class="p-8 text-center">
-    <div class="text-2xl font-bold mb-4">{{ .message }}</div>
-    <button
-        hx-get="/"
-        hx-target="body"
-        hx-swap="outerHTML"
-        hx-push-url="true"
-        class="py-3 px-6 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transform hover:scale-105 transition-all">
-        Retour à l'accueil
-    </button>
+<div id="gameZone" class="bg-gray-800 shadow-xl rounded-lg overflow-hidden">
+    <div class="p-8 text-center">
+        <div class="text-2xl font-bold mb-4">{{ .message }}</div>
+        <button
+            hx-get="/"
+            hx-target="body"
+            hx-swap="outerHTML"
+            hx-push-url="true"
+            class="py-3 px-6 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transform hover:scale-105 transition-all">
+            Retour à l'accueil
+        </button>
+    </div>
 </div>
 {{ else }}
-<div class="p-8">
-    <h2 class="text-2xl font-bold text-center mb-8">{{ .statement.Text }}</h2>
+<div id="gameZone" class="bg-gray-800 shadow-xl rounded-lg overflow-hidden">
+    <div class="p-8">
+        <h2 class="text-2xl font-bold text-center mb-8">{{ .statement.Text }}</h2>
     <div class="grid grid-cols-2 gap-4">
         <form hx-post="/api/game/vote" hx-target="#gameZone" hx-swap="outerHTML">
             <input type="hidden" name="statement_id" value="{{ .statement.ID }}">
@@ -30,6 +33,7 @@
                 DROITE
             </button>
         </form>
+        </div>
     </div>
 </div>
 {{ end }}

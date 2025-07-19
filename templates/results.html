@@ -1,151 +1,125 @@
-<div id="gameZone" class="p-8">
-    <h3 class="text-xl font-semibold mb-6">{{ .statement.Text }}</h3>
-
-    <!-- Votre choix si disponible -->
-    {{ if .userChoice }}
-    <div class="bg-gray-700 rounded-lg p-6 mb-6">
+<div id="gameZone" class="bg-gray-800 shadow-xl rounded-lg overflow-hidden">
+    <div class="p-6">
+        <!-- En-tête avec titre et choix utilisateur -->
         <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center">
-                <div class="w-8 h-8 bg-{{ if eq .userChoice "left" }}blue{{ else }}red{{ end }}-600 rounded-full flex items-center justify-center mr-3">
-                    👤
-                </div>
-                <h4 class="text-lg font-medium">Votre choix</h4>
-            </div>
-            {{ if eq .userChoice .stats.AIChoice }}
-                <span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    ✓ D'accord avec l'IA
-                </span>
-            {{ else }}
-                <span class="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    ≠ Différent de l'IA
-                </span>
-            {{ end }}
-        </div>
-        <div class="ml-11">
-            <p class="text-gray-300">
-                Vous avez choisi <span class="font-bold {{ if eq .userChoice "left" }}text-blue-400{{ else }}text-red-400{{ end }}">
+            <h3 class="text-lg font-semibold">{{ .statement.Text }}</h3>
+            {{ if .userChoice }}
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-400">Votre choix :</span>
+                <span class="px-3 py-1 rounded-full text-sm font-medium {{ if eq .userChoice "left" }}bg-blue-600{{ else }}bg-red-600{{ end }}">
                     {{ if eq .userChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
                 </span>
-            </p>
-        </div>
-    </div>
-    {{ end }}
-
-    <!-- Réponse de l'IA -->
-    <div class="bg-gray-700 rounded-lg p-6 mb-8">
-        <div class="flex items-center mb-4">
-            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
-                🤖
-            </div>
-            <h4 class="text-lg font-medium">Analyse de l'IA</h4>
-        </div>
-        <div class="ml-11">
-            <p class="text-gray-300 mb-2">
-                Cette action est plutôt de <span class="font-bold {{ if eq .statement.AIChoice "left" }}text-blue-400{{ else }}text-red-400{{ end }}">
-                    {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
-                </span>
-            </p>
-            <p class="text-gray-300">{{ .statement.AIExplanation }}</p>
-        </div>
-    </div>
-
-    <!-- Statistiques des votes enrichies -->
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h4 class="text-lg font-medium">Votes des joueurs</h4>
-            <div class="flex items-center space-x-4 text-sm text-gray-400">
-                <span>{{ .stats.TotalVotes }} votes</span>
-                <span class="px-2 py-1 rounded-full text-xs {{ if eq .stats.ConsensusLevel "fort" }}bg-green-600{{ else if eq .stats.ConsensusLevel "modéré" }}bg-yellow-600{{ else }}bg-red-600{{ end }}">
-                    Consensus {{ .stats.ConsensusLevel }}
-                </span>
-            </div>
-        </div>
-
-        <!-- Barre de progression GAUCHE -->
-        <div class="space-y-2">
-            <div class="flex justify-between text-sm">
-                <div class="flex items-center space-x-2">
-                    <span>GAUCHE</span>
-                    {{ if eq .statement.AIChoice "left" }}
-                        <span class="text-xs bg-primary px-2 py-1 rounded-full">IA</span>
-                    {{ end }}
-                    {{ if eq .stats.MajorityChoice "left" }}
-                        <span class="text-xs bg-green-600 px-2 py-1 rounded-full">Majorité</span>
-                    {{ end }}
-                </div>
-                <span class="font-medium">{{ printf "%.1f" .stats.LeftPercent }}%</span>
-            </div>
-            <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
-                <div class="h-full bg-blue-600 transition-all duration-1000" style="width: {{ .stats.LeftPercent }}%"></div>
-            </div>
-            <div class="text-sm text-gray-400">{{ .stats.LeftVotes }} votes</div>
-        </div>
-
-        <!-- Barre de progression DROITE -->
-        <div class="space-y-2">
-            <div class="flex justify-between text-sm">
-                <div class="flex items-center space-x-2">
-                    <span>DROITE</span>
-                    {{ if eq .statement.AIChoice "right" }}
-                        <span class="text-xs bg-primary px-2 py-1 rounded-full">IA</span>
-                    {{ end }}
-                    {{ if eq .stats.MajorityChoice "right" }}
-                        <span class="text-xs bg-green-600 px-2 py-1 rounded-full">Majorité</span>
-                    {{ end }}
-                </div>
-                <span class="font-medium">{{ printf "%.1f" .stats.RightPercent }}%</span>
-            </div>
-            <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
-                <div class="h-full bg-red-600 transition-all duration-1000" style="width: {{ .stats.RightPercent }}%"></div>
-            </div>
-            <div class="text-sm text-gray-400">{{ .stats.RightVotes }} votes</div>
-        </div>
-
-        <!-- Analyse des résultats -->
-        <div class="bg-gray-700 rounded-lg p-4 mt-6">
-            <h5 class="font-medium mb-2">📊 Analyse des résultats</h5>
-            <div class="text-sm text-gray-300 space-y-2">
-                {{ if eq .stats.ConsensusLevel "fort" }}
-                    <p>• <strong>Consensus fort</strong> : La grande majorité des joueurs sont d'accord</p>
-                {{ else if eq .stats.ConsensusLevel "modéré" }}
-                    <p>• <strong>Consensus modéré</strong> : Une tendance claire se dégage</p>
+                {{ if eq .userChoice .stats.AIChoice }}
+                    <span class="bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded-full text-xs">✓ IA</span>
                 {{ else }}
-                    <p>• <strong>Opinion divisée</strong> : Les joueurs sont partagés sur cette question</p>
-                {{ end }}
-
-                <p>• <strong>Polarisation</strong> : {{ printf "%.1f" .stats.PopularityScore }}% d'écart avec l'équilibre (50/50)</p>
-
-                {{ if .stats.MatchesAI }}
-                    <p>• L'IA a prédit <strong>correctement</strong> la tendance majoritaire</p>
-                {{ else }}
-                    {{ if eq .stats.MajorityChoice "tie" }}
-                        <p>• Résultat <strong>équilibré</strong>, l'IA avait prédit {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}</p>
-                    {{ else }}
-                        <p>• L'IA s'est <strong>trompée</strong> sur la tendance majoritaire</p>
-                    {{ end }}
-                {{ end }}
-
-                {{ if .userChoice }}
-                    {{ if eq .userChoice .stats.MajorityChoice }}
-                        <p>• Vous êtes du côté de la <strong>majorité</strong></p>
-                    {{ else if eq .stats.MajorityChoice "tie" }}
-                        <p>• Vous avez tranché dans un débat <strong>équilibré</strong></p>
-                    {{ else }}
-                        <p>• Vous faites partie de la <strong>minorité</strong> sur cette question</p>
-                    {{ end }}
+                    <span class="bg-orange-500 bg-opacity-20 text-orange-400 px-2 py-1 rounded-full text-xs">≠ IA</span>
                 {{ end }}
             </div>
+            {{ end }}
         </div>
-    </div>
 
-    <!-- Bouton suivant -->
-    <div class="mt-8">
-        <button
-            hx-get="/api/game/next-question"
-            hx-target="#gameZone"
-            hx-swap="outerHTML"
-            class="w-full py-4 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-800">
-            Question suivante →
-        </button>
+        <!-- Grille 2 colonnes : Stats à gauche, Analyse à droite -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Colonne gauche : Statistiques -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between text-sm text-gray-400 mb-2">
+                    <span>{{ .stats.TotalVotes }} votes</span>
+                    <span class="px-2 py-1 rounded-full text-xs {{ if eq .stats.ConsensusLevel "fort" }}bg-green-600{{ else if eq .stats.ConsensusLevel "modéré" }}bg-yellow-600{{ else }}bg-red-600{{ end }}">
+                        {{ .stats.ConsensusLevel }}
+                    </span>
+                </div>
+
+                <!-- GAUCHE -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm">
+                        <div class="flex items-center gap-1">
+                            <span>GAUCHE</span>
+                            {{ if eq .statement.AIChoice "left" }}<span class="text-xs bg-primary bg-opacity-20 text-primary px-1 rounded">IA</span>{{ end }}
+                            {{ if eq .stats.MajorityChoice "left" }}<span class="text-xs bg-green-500 bg-opacity-20 text-green-400 px-1 rounded">MAJ</span>{{ end }}
+                        </div>
+                        <span class="font-medium">{{ printf "%.0f" .stats.LeftPercent }}%</span>
+                    </div>
+                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-600 transition-all duration-1000" style="width: {{ printf "%.0f" .stats.LeftPercent }}%"></div>
+                    </div>
+                </div>
+
+                <!-- DROITE -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm">
+                        <div class="flex items-center gap-1">
+                            <span>DROITE</span>
+                            {{ if eq .statement.AIChoice "right" }}<span class="text-xs bg-primary bg-opacity-20 text-primary px-1 rounded">IA</span>{{ end }}
+                            {{ if eq .stats.MajorityChoice "right" }}<span class="text-xs bg-green-500 bg-opacity-20 text-green-400 px-1 rounded">MAJ</span>{{ end }}
+                        </div>
+                        <span class="font-medium">{{ printf "%.0f" .stats.RightPercent }}%</span>
+                    </div>
+                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-red-600 transition-all duration-1000" style="width: {{ printf "%.0f" .stats.RightPercent }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne droite : Analyse -->
+            <div class="bg-gray-700 bg-opacity-50 rounded-lg p-3 space-y-2 text-sm">
+                <div class="flex items-start gap-2">
+                    <span class="mt-0.5">🤖</span>
+                    <div class="text-gray-300">
+                        <p class="mb-1">Cette action est plutôt de <span class="font-bold {{ if eq .statement.AIChoice "left" }}text-blue-400{{ else }}text-red-400{{ end }}">
+                            {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
+                        </span></p>
+                        <p class="text-xs">{{ .statement.AIExplanation }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-2 mt-2">
+                    <span class="mt-0.5">📊</span>
+                    <div class="text-gray-300 text-xs space-y-1">
+                        {{ if eq .stats.ConsensusLevel "fort" }}
+                            {{ $maxPercent := .stats.LeftPercent }}
+                            {{ if gt .stats.RightPercent .stats.LeftPercent }}
+                                {{ $maxPercent = .stats.RightPercent }}
+                            {{ end }}
+                            <p>• <strong>Consensus fort</strong> ({{ printf "%.0f" $maxPercent }}%)</p>
+                        {{ else if eq .stats.ConsensusLevel "modéré" }}
+                            <p>• <strong>Consensus modéré</strong></p>
+                        {{ else }}
+                            <p>• <strong>Opinion divisée</strong></p>
+                        {{ end }}
+
+                        {{ if .stats.MatchesAI }}
+                            <p>• L'IA a <strong>bien prédit</strong> la tendance</p>
+                        {{ else }}
+                            {{ if eq .stats.MajorityChoice "tie" }}
+                                <p>• Résultat <strong>équilibré</strong></p>
+                            {{ else }}
+                                <p>• L'IA s'est <strong>trompée</strong></p>
+                            {{ end }}
+                        {{ end }}
+
+                        {{ if .userChoice }}
+                            {{ if eq .userChoice .stats.MajorityChoice }}
+                                <p>• Vous êtes avec la <strong>majorité</strong></p>
+                            {{ else if eq .stats.MajorityChoice "tie" }}
+                                <p>• Vote <strong>décisif</strong></p>
+                            {{ else }}
+                                <p>• Vote <strong>minoritaire</strong></p>
+                            {{ end }}
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton suivant -->
+        <div class="mt-4">
+            <button
+                hx-get="/api/game/next-question"
+                hx-target="#gameZone"
+                hx-swap="outerHTML"
+                class="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-800">
+                Question suivante →
+            </button>
+        </div>
     </div>
 </div>
