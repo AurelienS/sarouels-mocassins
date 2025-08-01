@@ -20,5 +20,5 @@ jobs:
             cd /mnt/data/sarouels-mocassins
             git fetch origin
             git reset --hard origin/prod
-            docker-compose down
-            docker-compose up -d --build
+            docker compose down
+            docker compose up -d --build
