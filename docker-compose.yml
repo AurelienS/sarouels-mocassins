@@ -3,8 +3,11 @@ version: '3.8'
 services:
   app:
     build: .
-    ports:
-      - "8080:8080"
     volumes:
-      - ./db:/app/db  # Monter le dossier local directement
+      - ./db:/app/db
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`sarouel-ou-mocassin.codeas.me`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
