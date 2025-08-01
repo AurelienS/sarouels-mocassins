@@ -6,3 +6,14 @@ services:
     volumes:
       - ./db:/app/db
     restart: unless-stopped
+    networks:
+      - traefik_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sarouel.rule=Host(`sarouel-ou-mocassin.codeas.me`)"
+      - "traefik.http.routers.sarouel.entrypoints=websecure"
+      - "traefik.http.routers.sarouel.tls.certresolver=letsencrypt"
+
+networks:
+  traefik_default:
+    external: true
