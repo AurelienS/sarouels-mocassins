@@ -1,124 +1,232 @@
-<div id="gameZone" class="bg-gray-800 shadow-xl rounded-lg overflow-hidden">
-    <div class="p-6">
-        <!-- En-tête avec titre et choix utilisateur -->
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">{{ .statement.Text }}</h3>
+<div id="gameZone" class="bg-gray-800 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-600">
+    <div class="p-4 sm:p-6 lg:p-8">
+        <!-- En-tête avec titre et choix utilisateur - Mobile Optimized -->
+        <div class="mb-6 sm:mb-8">
+            <!-- Question Title -->
+            <div class="text-center mb-4 sm:mb-6">
+                <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-tight px-2">
+                    {{ .statement.Text }}
+                </h3>
+                <div class="w-16 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mt-3 rounded-full"></div>
+            </div>
+
+            <!-- User Choice Display - Enhanced Mobile -->
             {{ if .userChoice }}
-            <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-400">Votre choix :</span>
-                <span class="px-3 py-1 rounded-full text-sm font-medium {{ if eq .userChoice "left" }}bg-blue-600{{ else }}bg-red-600{{ end }}">
-                    {{ if eq .userChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
-                </span>
-                {{ if eq .userChoice .stats.AIChoice }}
-                    <span class="bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded-full text-xs">✓ IA</span>
-                {{ else }}
-                    <span class="bg-orange-500 bg-opacity-20 text-orange-400 px-2 py-1 rounded-full text-xs">≠ IA</span>
-                {{ end }}
+            <div class="bg-gray-700 rounded-xl p-4 border border-gray-600 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="flex items-center justify-center sm:justify-start space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm text-gray-300 font-medium">Votre choix :</span>
+                        <span class="px-3 py-1 rounded-full text-sm font-bold text-white {{ if eq .userChoice "left" }}bg-gradient-to-r from-blue-600 to-blue-700{{ else }}bg-gradient-to-r from-red-600 to-red-700{{ end }} shadow-lg">
+                            {{ if eq .userChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
+                        </span>
+                    </div>
+
+                    <!-- AI Agreement Indicator -->
+                    <div class="flex justify-center sm:justify-end">
+                        {{ if eq .userChoice .stats.AIChoice }}
+                            <div class="flex items-center space-x-2 bg-green-500/20 text-green-400 px-3 py-1 rounded-full border border-green-500/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold">Accord IA</span>
+                            </div>
+                        {{ else }}
+                            <div class="flex items-center space-x-2 bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full border border-orange-500/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                <span class="text-xs font-semibold">Désaccord IA</span>
+                            </div>
+                        {{ end }}
+                    </div>
+                </div>
             </div>
             {{ end }}
         </div>
 
-        <!-- Grille 2 colonnes : Stats à gauche, Analyse à droite -->
-        <div class="grid grid-cols-2 gap-4">
-            <!-- Colonne gauche : Statistiques -->
-            <div class="space-y-4">
-                <div class="flex items-center justify-between text-sm text-gray-400 mb-2">
-                    <span>{{ .stats.TotalVotes }} votes</span>
-                    <span class="px-2 py-1 rounded-full text-xs {{ if eq .stats.ConsensusLevel "fort" }}bg-green-600{{ else if eq .stats.ConsensusLevel "modéré" }}bg-yellow-600{{ else }}bg-red-600{{ end }}">
+        <!-- Layout adaptatif : Stack sur mobile, Grid sur desktop -->
+        <div class="space-y-6 lg:grid lg:grid-cols-5 lg:gap-6 lg:space-y-0">
+            <!-- Statistiques - Mobile First -->
+            <div class="lg:col-span-3 space-y-4 sm:space-y-5">
+                <!-- Header with Total Votes and Consensus -->
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-2 text-gray-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span class="font-medium">{{ .stats.TotalVotes }} votes</span>
+                    </div>
+                    <div class="px-3 py-1 rounded-full text-xs font-semibold {{ if eq .stats.ConsensusLevel "fort" }}bg-green-500/20 text-green-400 border border-green-500/30{{ else if eq .stats.ConsensusLevel "modéré" }}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{{ else }}bg-red-500/20 text-red-400 border border-red-500/30{{ end }}">
                         {{ .stats.ConsensusLevel }}
-                    </span>
-                </div>
-
-                <!-- GAUCHE -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-sm">
-                        <div class="flex items-center gap-1">
-                            <span>GAUCHE</span>
-                            {{ if eq .statement.AIChoice "left" }}<span class="text-xs bg-primary bg-opacity-20 text-primary px-1 rounded">IA</span>{{ end }}
-                            {{ if eq .stats.MajorityChoice "left" }}<span class="text-xs bg-green-500 bg-opacity-20 text-green-400 px-1 rounded">MAJ</span>{{ end }}
-                        </div>
-                        <span class="font-medium">{{ printf "%.0f" .stats.LeftPercent }}%</span>
-                    </div>
-                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-600 transition-all duration-1000" style="width: {{ printf "%.0f" .stats.LeftPercent }}%"></div>
                     </div>
                 </div>
 
-                <!-- DROITE -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-sm">
-                        <div class="flex items-center gap-1">
-                            <span>DROITE</span>
-                            {{ if eq .statement.AIChoice "right" }}<span class="text-xs bg-primary bg-opacity-20 text-primary px-1 rounded">IA</span>{{ end }}
-                            {{ if eq .stats.MajorityChoice "right" }}<span class="text-xs bg-green-500 bg-opacity-20 text-green-400 px-1 rounded">MAJ</span>{{ end }}
+                <!-- GAUCHE - Progress Bar -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                            <span class="font-semibold text-white">GAUCHE</span>
+                            <div class="flex space-x-1">
+                                {{ if eq .statement.AIChoice "left" }}
+                                    <span class="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/30 font-medium">IA</span>
+                                {{ end }}
+                                {{ if eq .stats.MajorityChoice "left" }}
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30 font-medium">MAJ</span>
+                                {{ end }}
+                            </div>
                         </div>
-                        <span class="font-medium">{{ printf "%.0f" .stats.RightPercent }}%</span>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-blue-400">{{ printf "%.0f" .stats.LeftPercent }}%</div>
+                            <div class="text-xs text-gray-400">{{ .stats.LeftVotes }} votes</div>
+                        </div>
                     </div>
-                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-600 transition-all duration-1000" style="width: {{ printf "%.0f" .stats.RightPercent }}%"></div>
+                    <div class="relative h-3 sm:h-4 bg-gray-700 rounded-full overflow-hidden border border-gray-600">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full" style="width: {{ printf "%.0f" .stats.LeftPercent }}%"></div>
+                    </div>
+                </div>
+
+                <!-- DROITE - Progress Bar -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                            <span class="font-semibold text-white">DROITE</span>
+                            <div class="flex space-x-1">
+                                {{ if eq .statement.AIChoice "right" }}
+                                    <span class="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/30 font-medium">IA</span>
+                                {{ end }}
+                                {{ if eq .stats.MajorityChoice "right" }}
+                                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30 font-medium">MAJ</span>
+                                {{ end }}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-red-400">{{ printf "%.0f" .stats.RightPercent }}%</div>
+                            <div class="text-xs text-gray-400">{{ .stats.RightVotes }} votes</div>
+                        </div>
+                    </div>
+                    <div class="relative h-3 sm:h-4 bg-gray-700 rounded-full overflow-hidden border border-gray-600">
+                        <div class="absolute inset-0 bg-gradient-to-r from-red-600 to-red-500 rounded-full" style="width: {{ printf "%.0f" .stats.RightPercent }}%"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Colonne droite : Analyse -->
-            <div class="bg-gray-700 bg-opacity-50 rounded-lg p-3 space-y-2 text-sm">
-                <div class="flex items-start gap-2">
-                    <span class="mt-0.5">🤖</span>
-                    <div class="text-gray-300">
-                        <p class="mb-1">Cette action est plutôt de <span class="font-bold {{ if eq .statement.AIChoice "left" }}text-blue-400{{ else }}text-red-400{{ end }}">
-                            {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
-                        </span></p>
-                        <p class="text-xs">{{ .statement.AIExplanation }}</p>
+            <!-- Analyse - Mobile Enhanced -->
+            <div class="lg:col-span-2 bg-gray-700 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-600">
+                <!-- AI Analysis Section -->
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center">
+                            <span class="text-lg sm:text-xl">🤖</span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h4 class="text-sm sm:text-base font-semibold text-white mb-2">Analyse IA</h4>
+                            <div class="space-y-2">
+                                <p class="text-xs sm:text-sm text-gray-300">
+                                    Cette action est plutôt de
+                                    <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold {{ if eq .statement.AIChoice "left" }}bg-blue-500/20 text-blue-300 border border-blue-500/30{{ else }}bg-red-500/20 text-red-300 border border-red-500/30{{ end }}">
+                                        {{ if eq .statement.AIChoice "left" }}GAUCHE{{ else }}DROITE{{ end }}
+                                    </span>
+                                </p>
+                                <p class="text-xs text-gray-400 leading-relaxed">{{ .statement.AIExplanation }}</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="flex items-start gap-2 mt-2">
-                    <span class="mt-0.5">📊</span>
-                    <div class="text-gray-300 text-xs space-y-1">
-                        {{ if eq .stats.ConsensusLevel "fort" }}
-                            {{ $maxPercent := .stats.LeftPercent }}
-                            {{ if gt .stats.RightPercent .stats.LeftPercent }}
-                                {{ $maxPercent = .stats.RightPercent }}
-                            {{ end }}
-                            <p>• <strong>Consensus fort</strong> ({{ printf "%.0f" $maxPercent }}%)</p>
-                        {{ else if eq .stats.ConsensusLevel "modéré" }}
-                            <p>• <strong>Consensus modéré</strong></p>
-                        {{ else }}
-                            <p>• <strong>Opinion divisée</strong></p>
-                        {{ end }}
+                    <!-- Statistics Analysis Section -->
+                    <div class="border-t border-gray-600 pt-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl flex items-center justify-center">
+                                <span class="text-lg sm:text-xl">📊</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h4 class="text-sm sm:text-base font-semibold text-white mb-2">Insights</h4>
+                                <div class="space-y-2 text-xs sm:text-xs text-gray-300">
+                                    {{ if eq .stats.ConsensusLevel "fort" }}
+                                        {{ $maxPercent := .stats.LeftPercent }}
+                                        {{ if gt .stats.RightPercent .stats.LeftPercent }}
+                                            {{ $maxPercent = .stats.RightPercent }}
+                                        {{ end }}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                            <span><strong>Consensus fort</strong> ({{ printf "%.0f" $maxPercent }}%)</span>
+                                        </div>
+                                    {{ else if eq .stats.ConsensusLevel "modéré" }}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                            <span><strong>Consensus modéré</strong></span>
+                                        </div>
+                                    {{ else }}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-red-400 rounded-full"></div>
+                                            <span><strong>Opinion divisée</strong></span>
+                                        </div>
+                                    {{ end }}
 
-                        {{ if .stats.MatchesAI }}
-                            <p>• L'IA a <strong>bien prédit</strong> la tendance</p>
-                        {{ else }}
-                            {{ if eq .stats.MajorityChoice "tie" }}
-                                <p>• Résultat <strong>équilibré</strong></p>
-                            {{ else }}
-                                <p>• L'IA s'est <strong>trompée</strong></p>
-                            {{ end }}
-                        {{ end }}
+                                    {{ if .stats.MatchesAI }}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                            <span>L'IA a <strong>bien prédit</strong> la tendance</span>
+                                        </div>
+                                    {{ else }}
+                                        {{ if eq .stats.MajorityChoice "tie" }}
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                                <span>Résultat <strong>équilibré</strong></span>
+                                            </div>
+                                        {{ else }}
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-2 h-2 bg-orange-400 rounded-full"></div>
+                                                <span>L'IA s'est <strong>trompée</strong></span>
+                                            </div>
+                                        {{ end }}
+                                    {{ end }}
 
-                        {{ if .userChoice }}
-                            {{ if eq .userChoice .stats.MajorityChoice }}
-                                <p>• Vous êtes avec la <strong>majorité</strong></p>
-                            {{ else if eq .stats.MajorityChoice "tie" }}
-                                <p>• Vote <strong>décisif</strong></p>
-                            {{ else }}
-                                <p>• Vote <strong>minoritaire</strong></p>
-                            {{ end }}
-                        {{ end }}
+                                    {{ if .userChoice }}
+                                        {{ if eq .userChoice .stats.MajorityChoice }}
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-2 h-2 bg-primary rounded-full"></div>
+                                                <span>Vous êtes avec la <strong>majorité</strong></span>
+                                            </div>
+                                        {{ else if eq .stats.MajorityChoice "tie" }}
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
+                                                <span>Vote <strong>décisif</strong></span>
+                                            </div>
+                                        {{ else }}
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                                <span>Vote <strong>minoritaire</strong></span>
+                                            </div>
+                                        {{ end }}
+                                    {{ end }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bouton suivant -->
-        <div class="mt-4">
+        <!-- Bouton suivant - Simplifié -->
+        <div class="mt-6 sm:mt-8">
             <button
                 hx-get="/api/game/next-question"
                 hx-target="#gameZone"
                 hx-swap="outerHTML"
-                class="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg transform hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-gray-800">
-                Question suivante →
+                class="w-full py-4 px-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary/50">
+                <div class="flex items-center justify-center space-x-3">
+                    <span>Question suivante</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </div>
             </button>
         </div>
     </div>
