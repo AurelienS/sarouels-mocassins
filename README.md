@@ -1,5 +1,8 @@
 # Sarouels Mocassins
 
+> Cette application a été entièrement vibe-codée par une intelligence artificielle, sans aucune ligne écrite manuellement par un humain. 🧠⚡️
+
+
 ## Déploiement
 
 ### Prérequis
@@ -18,6 +21,10 @@ cd sarouels-mocassins
 ```bash
 docker compose up -d
 ```
+ou
+```bash
+go run main.go
+```
 
 L'application sera accessible à l'adresse : http://localhost:8080
 
@@ -30,3 +37,7 @@ L'application sera accessible à l'adresse : http://localhost:8080
 
 ### Base de données
 La base de données SQLite est stockée dans le dossier `/app/db` dans le conteneur, qui est persisté via un volume Docker nommé `sqlite_data`. Cela garantit que vos données sont conservées même si le conteneur est redémarré.
+
+## 🤝 Contribuer
+
+Les contributions sont les bienvenues ! Que ce soit pour corriger un bug, ajouter une fonctionnalité ou améliorer l'expérience utilisateur, n'hésitez pas à proposer une _pull request_.
