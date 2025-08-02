@@ -20,5 +20,18 @@ jobs:
             cd /mnt/data/sarouels-mocassins
             git fetch origin
             git reset --hard origin/prod
-            docker compose down
-            docker compose up -d --build
+
+            # Build les nouvelles images
+            docker compose build
+
+            # Redémarre les services un par un (zero downtime)
+            services=$(docker compose config --services)
+
+            for service in $services; do
+              echo "Updating $service..."
+              docker compose up -d --no-deps $service
+              sleep 5
+            done
+
+            # Nettoie les anciennes images
+            docker image prune -f
